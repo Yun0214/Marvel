@@ -1,5 +1,6 @@
-package com.search.marvel.presentation.ui.main.tabs.search
+package com.search.marvel.presentation.ui.main.tabs.common
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -35,21 +36,27 @@ class CharacterCardListAdapter(private val itemClickListener: ItemClickListener)
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun updateFavoriteState(newList: List<CharacterCardModel>) {
         val result = currentList.toList()
         result.forEachIndexed { index, it ->
             if (it.isFavorite && !newList.contains(it)) {
                 it.isFavorite = false
-                notifyItemChanged(index)
             } else if (!it.isFavorite && newList.find { newItem -> diffCallback.areItemsTheSame(it, newItem) } != null) {
                 it.isFavorite = true
-                notifyItemChanged(index)
             }
         }
+        notifyDataSetChanged()
+    }
+
+    fun removeFavorite(item: CharacterCardModel) {
+        val result = currentList.toMutableList().apply {
+            remove(item)
+        }
+        submitList(result)
     }
 
     inner class CharacterCardViewHolder(private val binding: RowCharacterCardBinding) : RecyclerView.ViewHolder(binding.root) {
-        private var isClicked: Boolean = false
 
         fun bind(item: CharacterCardModel) = with(binding) {
             //todo - thumbnail 업데이트

@@ -29,5 +29,11 @@ object Utils {
         }
     }
 
+    fun LifecycleOwner.repeatOnLifecycleResume(block: suspend CoroutineScope.() -> Unit) {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED, block)
+        }
+    }
+
     fun <T> StateFlow<T>.asMutable() = this as MutableStateFlow
 }

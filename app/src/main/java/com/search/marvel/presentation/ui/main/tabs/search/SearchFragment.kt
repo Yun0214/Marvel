@@ -9,13 +9,15 @@ import android.view.inputmethod.InputMethodManager
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import com.search.marvel.Utils.repeatOnLifecycleResume
 import com.search.marvel.Utils.repeatOnLifecycleStart
 import com.search.marvel.databinding.FragmentSearchBinding
 import com.search.marvel.presentation.model.CharacterCardModel
 import com.search.marvel.presentation.ui.BindingFragment
+import com.search.marvel.presentation.ui.main.tabs.common.CharacterCardListAdapter
+import com.search.marvel.presentation.ui.main.tabs.common.FavoriteViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
@@ -26,6 +28,7 @@ class SearchFragment : BindingFragment<FragmentSearchBinding>() {
     override val binding: FragmentSearchBinding by lazy { FragmentSearchBinding.inflate(layoutInflater) }
 
     private val vm: SearchViewModel by activityViewModels<SearchViewModel>()
+    private val favoriteViewModel: FavoriteViewModel by activityViewModels()
 
     private var searchJob: Job? = null
     private var isEndPage = false
@@ -36,6 +39,7 @@ class SearchFragment : BindingFragment<FragmentSearchBinding>() {
 
         observeTextWatcherFlow()
         observeSearchResultFlow()
+        observeFavoriteListFlow()
         observeLoadingFlow()
     }
 
@@ -64,7 +68,7 @@ class SearchFragment : BindingFragment<FragmentSearchBinding>() {
         with(binding.list) {
             adapter = CharacterCardListAdapter(object : CharacterCardListAdapter.ItemClickListener {
                 override fun onItemClick(item: CharacterCardModel) {
-                    (binding.list.adapter as CharacterCardListAdapter).updateFavoriteState(vm.updateFavoriteList(item))
+                    favoriteViewModel.updateFavoriteList(item)
                 }
             })
 
@@ -74,7 +78,7 @@ class SearchFragment : BindingFragment<FragmentSearchBinding>() {
                         if (isEndPage.not() && it.findLastVisibleItemPosition() >= (adapter?.itemCount ?: -1) - 2) {
                             isEndPage = true
                             lifecycleScope.launch {
-                                vm.callNextPage()
+                                vm.callNextPage(favoriteViewModel.favoriteListFlow.value)
                             }
                         }
                     }
@@ -94,6 +98,7 @@ class SearchFragment : BindingFragment<FragmentSearchBinding>() {
     private fun observeSearchResultFlow() {
         repeatOnLifecycleStart {
             vm.searchResultFlow.collectLatest { page ->
+                searchJob = null
                 if (isVisible) {
                     (binding.list.adapter as? CharacterCardListAdapter)?.also {
                         if (page != null) {
@@ -108,11 +113,23 @@ class SearchFragment : BindingFragment<FragmentSearchBinding>() {
         }
     }
 
+    private fun observeFavoriteListFlow() {
+        repeatOnLifecycleResume {
+            favoriteViewModel.favoriteListFlow.collectLatest {
+                if (isVisible) {
+                    (binding.list.adapter as? CharacterCardListAdapter)?.updateFavoriteState(it)
+                }
+            }
+        }
+    }
+
     private fun observeTextWatcherFlow() {
         repeatOnLifecycleStart {
             vm.searchTextWatcherFlow.collectLatest {
                 searchJob?.cancel()
-                searchJob = it?.let { vm.search(it) }
+                searchJob = it?.let {
+                    vm.search(it, favoriteViewModel.favoriteListFlow.value)
+                }
             }
         }
     }

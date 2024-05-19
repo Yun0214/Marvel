@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.search.marvel.Utils.asMutable
 import com.search.marvel.presentation.model.CharacterCardModel
 import com.search.marvel.presentation.model.Page
+import com.search.marvel.presentation.ui.LoadingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,13 +14,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 
-class SearchViewModel : ViewModel() {
+class SearchViewModel : LoadingViewModel() {
     val searchResultFlow: StateFlow<Page<CharacterCardModel>?> = MutableStateFlow(null)
     val searchTextWatcherFlow: StateFlow<String?> = MutableStateFlow(null)
-    val loadingFlow: StateFlow<Boolean> = MutableStateFlow(false)
-
-    //todo - 추후 제거
-    val tempFavoriteList = mutableListOf<CharacterCardModel>()
 
     fun emitToTextWatcherFlow(editable: Editable?) {
         viewModelScope.launch {
@@ -27,40 +24,26 @@ class SearchViewModel : ViewModel() {
         }
     }
 
-    fun search(keyword: String) = viewModelScope.launch {
-        delay(SEARCH_DELAY_MS)
-        doWithLoading {
-            test(keyword, 0).collectLatest {
-                searchResultFlow.asMutable().emit(null)
-                searchResultFlow.asMutable().emit(it)
-            }
-        }
-    }
-
-    fun callNextPage() = viewModelScope.launch {
-        searchResultFlow.value?.also {
+    fun search(keyword: String, favoriteList: List<CharacterCardModel>) = viewModelScope.launch {
+        if (keyword != searchResultFlow.value?.keyword) {
+            delay(SEARCH_DELAY_MS)
             doWithLoading {
-                test(it.keyword, it.pageIndex + 1).collectLatest {
+                test(keyword, 0, favoriteList).collectLatest {
+                    searchResultFlow.asMutable().emit(null)
                     searchResultFlow.asMutable().emit(it)
                 }
             }
         }
     }
 
-    fun updateFavoriteList(item: CharacterCardModel): List<CharacterCardModel> {
-        if (!item.isFavorite) {
-            tempFavoriteList.remove(item)
-        } else {
-            tempFavoriteList.add(0, item)
-            if (tempFavoriteList.size >= 5) return tempFavoriteList.subList(0, 5)
+    fun callNextPage(favoriteList: List<CharacterCardModel>) = viewModelScope.launch {
+        searchResultFlow.value?.also {
+            doWithLoading {
+                test(it.keyword, it.pageIndex + 1, favoriteList).collectLatest {
+                    searchResultFlow.asMutable().emit(it)
+                }
+            }
         }
-        return tempFavoriteList
-    }
-
-    private suspend fun doWithLoading(block: suspend () -> Unit) {
-        loadingFlow.asMutable().emit(true)
-        block.invoke()
-        loadingFlow.asMutable().emit(false)
     }
 
     fun clearSearchResultIfNeeded() {
@@ -70,14 +53,14 @@ class SearchViewModel : ViewModel() {
     }
 
     //todo - api 연동
-    private fun test(keyword: String, page: Int) = flow {
+    private fun test(keyword: String, page: Int, favoriteList: List<CharacterCardModel>) = flow {
         delay(1000L)
         mutableListOf<CharacterCardModel>().apply {
             repeat(10) {
                 add(CharacterCardModel("hero$it ($page)",
                     "",
                     "test",
-                    tempFavoriteList.find { favorite -> favorite.name == "hero$it ($page)" } != null))
+                    favoriteList.find { favorite -> favorite.name == "hero$it ($page)" } != null))
             }
         }.run {
             emit(Page(keyword, page == 0, page, this))
