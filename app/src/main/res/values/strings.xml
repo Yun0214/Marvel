@@ -7,6 +7,9 @@
     <string name="search_input_label">검색어 (영문 2자 이상)</string>
     <string name="search_input_hint">마블 영웅 이름을 입력하세요</string>
     <string name="search_empty_notice">검색 결과가 없습니다</string>
+    <string name="search_error_popup_title">오류</string>
+    <string name="search_error_popup_message">검색에 실패했습니다. 네트워크를 확인하시거나 잠시 뒤 시도해주세요.</string>
+    <string name="search_error_popup_button">확인</string>
 
     <string name="favorite_empty_notice">저장된 영웅이 없습니다</string>
 

@@ -1,3 +1,6 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -9,6 +12,10 @@ android {
     namespace = "com.search.marvel"
     compileSdk = 34
 
+    val localProperties = Properties().apply {
+        load(project.rootProject.file("local.properties").inputStream())
+    }
+
     defaultConfig {
         applicationId = "com.search.marvel"
         minSdk = 26
@@ -17,6 +24,13 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "API_KEY", localProperties.getProperty("API_KEY"))
+        buildConfigField("String", "SECRET_KEY", localProperties.getProperty("SECRET_KEY"))
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -53,4 +67,13 @@ dependencies {
     //hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
+
+    //retrofit2
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.logging.interceptor)
+
+    //glide
+    implementation(libs.github.glide)
+    ksp(libs.glide.compiler)
 }

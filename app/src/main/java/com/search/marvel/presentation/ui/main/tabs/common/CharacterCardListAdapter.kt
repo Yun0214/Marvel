@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.search.marvel.Utils.setOnAntiDoubleClickListener
 import com.search.marvel.databinding.RowCharacterCardBinding
 import com.search.marvel.presentation.model.CharacterCardModel
@@ -59,8 +60,7 @@ class CharacterCardListAdapter(private val itemClickListener: ItemClickListener)
     inner class CharacterCardViewHolder(private val binding: RowCharacterCardBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: CharacterCardModel) = with(binding) {
-            //todo - thumbnail 업데이트
-
+            Glide.with(root).load(item.thumbnail).centerCrop().into(thumbnail)
             name.text = item.name
             description.text = item.description
             root.isSelected = item.isFavorite
@@ -82,7 +82,7 @@ class CharacterCardListAdapter(private val itemClickListener: ItemClickListener)
         private val diffCallback = object : DiffUtil.ItemCallback<CharacterCardModel>() {
 
             override fun areItemsTheSame(oldItem: CharacterCardModel, newItem: CharacterCardModel): Boolean {
-                return oldItem.name == newItem.name
+                return oldItem.id == newItem.id
             }
 
             override fun areContentsTheSame(oldItem: CharacterCardModel, newItem: CharacterCardModel): Boolean {

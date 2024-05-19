@@ -11,6 +11,8 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.search.marvel.R
 import com.search.marvel.Utils.repeatOnLifecycleResume
 import com.search.marvel.Utils.repeatOnLifecycleStart
 import com.search.marvel.databinding.FragmentSearchBinding
@@ -40,6 +42,7 @@ class SearchFragment : BindingFragment<FragmentSearchBinding>() {
         observeTextWatcherFlow()
         observeSearchResultFlow()
         observeFavoriteListFlow()
+        observeSearchFailureFlow()
         observeLoadingFlow()
     }
 
@@ -103,6 +106,7 @@ class SearchFragment : BindingFragment<FragmentSearchBinding>() {
                     (binding.list.adapter as? CharacterCardListAdapter)?.also {
                         if (page != null) {
                             isEndPage = !page.hasNextPage
+                            binding.emptyGroup.isVisible = page.pageIndex == 0 && page.getList().isEmpty()
                             it.updateList(page)
                         } else {
                             it.submitList(emptyList())
@@ -118,6 +122,22 @@ class SearchFragment : BindingFragment<FragmentSearchBinding>() {
             favoriteViewModel.favoriteListFlow.collectLatest {
                 if (isVisible) {
                     (binding.list.adapter as? CharacterCardListAdapter)?.updateFavoriteState(it)
+                }
+            }
+        }
+    }
+
+    private fun observeSearchFailureFlow() {
+        repeatOnLifecycleStart {
+            vm.searchFailureFlow.collectLatest {
+                if (it && isVisible) {
+                    binding.emptyGroup.isVisible = true
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(getString(R.string.search_error_popup_title))
+                        .setMessage(getString(R.string.search_error_popup_message))
+                        .setPositiveButton(getString(R.string.search_error_popup_button)) { p0, _ ->
+                            p0.dismiss()
+                        }.show()
                 }
             }
         }
