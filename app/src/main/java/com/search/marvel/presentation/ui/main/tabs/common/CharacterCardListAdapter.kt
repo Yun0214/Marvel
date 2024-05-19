@@ -40,7 +40,7 @@ class CharacterCardListAdapter(private val itemClickListener: ItemClickListener)
     @SuppressLint("NotifyDataSetChanged")
     fun updateFavoriteState(newList: List<CharacterCardModel>) {
         val result = currentList.toList()
-        result.forEachIndexed { index, it ->
+        result.forEach {
             if (it.isFavorite && !newList.contains(it)) {
                 it.isFavorite = false
             } else if (!it.isFavorite && newList.find { newItem -> diffCallback.areItemsTheSame(it, newItem) } != null) {

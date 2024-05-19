@@ -46,6 +46,12 @@ class SearchFragment : BindingFragment<FragmentSearchBinding>() {
         observeLoadingFlow()
     }
 
+    override fun onPause() {
+        super.onPause()
+
+        favoriteViewModel.saveFavoriteList()
+    }
+
     private fun initSearchInputField() {
         with(binding.searchInputLayout) {
             setEndIconOnClickListener {

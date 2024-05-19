@@ -26,6 +26,12 @@ class FavoriteFragment : BindingFragment<FragmentFavoriteBinding>() {
         observeLoadingFlow()
     }
 
+    override fun onPause() {
+        super.onPause()
+
+        vm.saveFavoriteList()
+    }
+
     private fun initFavoriteList() {
         with(binding.list) {
             adapter = CharacterCardListAdapter(object : CharacterCardListAdapter.ItemClickListener {
