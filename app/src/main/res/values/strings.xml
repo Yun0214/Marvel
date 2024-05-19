@@ -3,4 +3,9 @@
 
     <string name="search_tab">SEARCH</string>
     <string name="favorite_tab">FAVORITE</string>
+
+    <string name="search_input_label">검색어 (영문 2자 이상)</string>
+    <string name="search_input_hint">마블 영웅 이름을 입력하세요</string>
+    <string name="search_empty_notice">검색 결과가 없습니다</string>
+
 </resources>
