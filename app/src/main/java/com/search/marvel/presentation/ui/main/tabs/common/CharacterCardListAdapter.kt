@@ -14,6 +14,7 @@ import com.search.marvel.presentation.model.Page
 
 class CharacterCardListAdapter(private val itemClickListener: ItemClickListener) :
     ListAdapter<CharacterCardModel, CharacterCardListAdapter.CharacterCardViewHolder>(diffCallback) {
+    private var lastPage = -1
 
     override fun onBindViewHolder(holder: CharacterCardViewHolder, position: Int) {
         getItem(position)?.also { holder.bind(it) }
@@ -27,12 +28,13 @@ class CharacterCardListAdapter(private val itemClickListener: ItemClickListener)
         with(page) {
             if (pageIndex == 0) {
                 submitList(getList())
-            } else {
+            } else if (lastPage != page.pageIndex) {
                 currentList.toMutableList().apply {
                     addAll(getList())
                 }.also {
                     submitList(it)
                 }
+                lastPage = page.pageIndex
             }
         }
     }

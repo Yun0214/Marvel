@@ -5,7 +5,6 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.search.marvel.databinding.ActivityMainBinding
 import com.search.marvel.presentation.model.MainTabType
 import com.search.marvel.presentation.ui.BindingActivity
-import com.search.marvel.presentation.ui.main.tabs.MainTabAdapter
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

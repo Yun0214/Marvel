@@ -1,4 +1,4 @@
-package com.search.marvel.presentation.ui.main.tabs
+package com.search.marvel.presentation.ui.main
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
